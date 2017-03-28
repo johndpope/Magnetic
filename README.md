@@ -13,10 +13,6 @@
 $ pod try Magnetic
 ```
 
-## Example
-
-To run the example project, clone the repo, and run `pod install` from the Example directory first.
-
 ## Requirements
 
 - iOS 9.3+
@@ -25,7 +21,7 @@ To run the example project, clone the repo, and run `pod install` from the Examp
 
 ## Usage
 
-A `Magentic` object is an SKScene. You need to present it from an SKView.
+A `Magnetic` object is an SKScene, present it from an SKView.
 
 ```swift
 import Magnetic
