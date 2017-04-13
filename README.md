@@ -15,7 +15,7 @@ $ pod try Magnetic
 
 ## Requirements
 
-- iOS 9.3+
+- iOS 9.0+
 - Xcode 8.0+
 - Swift 3.0+
 
@@ -43,34 +43,87 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        let scene = Magnetic(size: self.view.bounds.size)
-        skView.presentScene(scene)
+        let magnetic = Magnetic(size: self.view.bounds.size)
+        skView.presentScene(magnetic)
     }
 
 }
 ```
 
-#### Add Nodes
+#### Properties
 
 ```swift
-func addNode() {
-    let node = Node(title: "Italy", image: UIImage(named: "italy"), color: .red, radius: 30)
-    scene.addChild(node)
-}
+var magneticDelegate: MagneticDelegate? // magnetic delegate
+var allowsMultipleSelection: Bool // controls whether you can select multiple nodes. defaults to true
+var selectedChildren: [Node] // returns selected chidren
 ```
 
-#### Remove Nodes
+### Nodes
+
+A `Node` object is a circular SKShapeNode subclass.
+
+#### Interaction
 
 ```swift
+// add node
+func addNode() {
+    let node = Node(text: "Italy", image: UIImage(named: "italy"), color: .red, radius: 30)
+    magnetic.addChild(node)
+}
+
+// remove node
 func removeNode() {
     node.removeFromParent()
 }
 ```
 
+#### Properties
+
+```swift
+var text: String? // node text
+var image: UIImage? // node image
+var color: UIColor // node color. defaults to white
+```
+
+#### Animations
+
+```swift
+override func selectedAnimation() {
+    // override selected animation
+}
+
+override func deselectedAnimation() {
+    // override deselected animation
+}
+
+override func removeAnimation(completion: @escaping () -> Void) {
+    // override remove animation
+}
+```
+
+### Delegation
+
+The `MagneticDelegate` protocol provides a number of functions for observing the current state of nodes.
+
+```swift
+func magnetic(_ magnetic: Magnetic, didSelect node: Node) {
+    // handle node selection
+}
+
+func magnetic(_ magnetic: Magnetic, didDeselect node: Node) {
+    // handle node deselection
+}
+```
+
+### TODO
+
+- Add multiple selection states
+- Add long press to delete
+
 ## Installation
 
 ### CocoaPods
-To install with [CocoaPods](http://cocoapods.org/), simply add the following line to your `Podfile`:
+To install with [CocoaPods](http://cocoapods.org/), simply add this in your `Podfile`:
 ```ruby
 use_frameworks!
 pod "Magnetic"

@@ -8,19 +8,45 @@
 
 import SpriteKit
 
+public protocol MagneticDelegate: class {
+    func magnetic(_ magnetic: Magnetic, didSelect node: Node)
+    func magnetic(_ magnetic: Magnetic, didDeselect node: Node)
+}
+
 open class Magnetic: SKScene {
     
+    /**
+     The field node that accelerates the nodes.
+     */
     public lazy var magneticField: SKFieldNode = { [unowned self] in
         let field = SKFieldNode.radialGravityField()
         field.region = SKRegion(radius: 2000)
         field.minimumRadius = 2000
         field.strength = 500
-        field.speed = 1
         self.addChild(field)
         return field
     }()
     
-    var moving: Bool = false
+    /**
+     Controls whether you can select multiple nodes.
+     */
+    open var allowsMultipleSelection: Bool = true
+    
+    var isMoving: Bool = false
+    
+    /**
+     The selected children.
+     */
+    open var selectedChildren: [Node] {
+        return children.flatMap { $0 as? Node }.filter { $0.isSelected }
+    }
+    
+    /**
+     The object that acts as the delegate of the scene.
+     
+     The delegate must adopt the MagneticDelegate protocol. The delegate is not retained.
+     */
+    open weak var magneticDelegate: MagneticDelegate?
     
     override open func didMove(to view: SKView) {
         super.didMove(to: view)
@@ -38,9 +64,9 @@ open class Magnetic: SKScene {
     }
     
     override open func addChild(_ node: SKNode) {
-        var x = CGFloat.random(0, -node.frame.width) // left
+        var x = -node.frame.width // left
         if children.count % 2 == 0 {
-            x = CGFloat.random(frame.width, frame.width + node.frame.width) // right
+            x = frame.width + node.frame.width // right
         }
         let y = CGFloat.random(node.frame.height, frame.height - node.frame.height)
         node.position = CGPoint(x: x, y: y)
@@ -70,9 +96,9 @@ extension Magnetic {
             let location = touch.location(in: self)
             let previous = touch.previousLocation(in: self)
             
-            if location.length() == 0 { return }
+            if location.distance(from: previous) == 0 { return }
             
-            moving = true
+            isMoving = true
             
             let x = location.x - previous.x
             let y = location.y - previous.y
@@ -87,14 +113,24 @@ extension Magnetic {
     }
     
     override open func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-        if !moving, let point = touches.first?.location(in: self), let node = atPoint(point) as? Node {
-            node.selected = !node.selected
+        if !isMoving, let point = touches.first?.location(in: self), let node = atPoint(point) as? Node {
+            if node.isSelected {
+                node.isSelected = false
+                magneticDelegate?.magnetic(self, didDeselect: node)
+            } else {
+                if !allowsMultipleSelection, let selectedNode = selectedChildren.first {
+                    selectedNode.isSelected = false
+                    magneticDelegate?.magnetic(self, didDeselect: selectedNode)
+                }
+                node.isSelected = true
+                magneticDelegate?.magnetic(self, didSelect: node)
+            }
         }
-        moving = false
+        isMoving = false
     }
     
     override open func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
-        moving = false
+        isMoving = false
     }
     
 }
